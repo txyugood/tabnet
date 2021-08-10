@@ -228,11 +228,11 @@ class TabModel(BaseEstimator):
             self._callback_container.on_epoch_begin(epoch_idx)
 
             self._train_epoch(epoch_idx, train_dataloader)
-
+            print('train epoch finish!')
             # Apply predict epoch to all eval sets
             for eval_name, valid_dataloader in zip(eval_names, valid_dataloaders):
-                self._predict_epoch(eval_name, valid_dataloader)
-
+                self._predict_epoch(epoch_idx, eval_name, valid_dataloader)
+            print('predict epoch finish!')
             # Call method on_epoch_end for all callbacks
             self._callback_container.on_epoch_end(
                 epoch_idx, logs=self.history.epoch_metrics
@@ -244,9 +244,9 @@ class TabModel(BaseEstimator):
         # Call method on_train_end for all callbacks
         self._callback_container.on_train_end()
         self.network.eval()
-
         # compute feature importance once the best model is defined
         self._compute_feature_importances(train_dataloader)
+        print('_compute_feature_importances finish!')
 
     def predict(self, X):
         """
@@ -485,7 +485,7 @@ class TabModel(BaseEstimator):
 
         return batch_logs
 
-    def _predict_epoch(self, name, loader):
+    def _predict_epoch(self, epoch_idx, name, loader):
         """
         Predict an epoch and update metrics.
 
@@ -505,6 +505,9 @@ class TabModel(BaseEstimator):
         # Main loop
         for batch_idx, (X, y) in enumerate(loader):
             scores = self._predict_batch(X)
+            print("epoch:{} batch_idx:{} scores:{}".format(epoch_idx,
+                                                           batch_idx,
+                                                           scores))
             list_y_true.append(y)
             list_y_score.append(scores)
 
