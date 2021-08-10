@@ -214,7 +214,6 @@ class TabModel(BaseEstimator):
                 break
         self._set_optimizer()
 
-
         if from_unsupervised is not None:
             print("Loading weights from unsupervised pretraining")
             self.load_weights_from_unsupervised(from_unsupervised)
@@ -228,7 +227,7 @@ class TabModel(BaseEstimator):
             # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)
 
-            self._train_epoch(train_dataloader)
+            self._train_epoch(epoch_idx, train_dataloader)
 
             # Apply predict epoch to all eval sets
             for eval_name, valid_dataloader in zip(eval_names, valid_dataloaders):
@@ -423,7 +422,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_epoch(self, train_loader):
+    def _train_epoch(self, epoch_idx, train_loader):
         """
         Trains one epoch of the network in self.network
 
@@ -438,6 +437,9 @@ class TabModel(BaseEstimator):
             self._callback_container.on_batch_begin(batch_idx)
 
             batch_logs = self._train_batch(X, y)
+            print("epoch:{} batch_idx:{} loss:{}".format(epoch_idx,
+                                                         batch_idx,
+                                                         batch_logs["loss"]))
 
             self._callback_container.on_batch_end(batch_idx, batch_logs)
 
@@ -467,7 +469,6 @@ class TabModel(BaseEstimator):
         batch_logs = {"batch_size": X.shape[0]}
 
         y = paddle.cast(y, 'float32')
-
 
         output, M_loss = self.network(X)
 
