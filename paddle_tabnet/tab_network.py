@@ -1,7 +1,7 @@
 import paddle
 import paddle.nn as nn
-from paddle.nn import Linear,BatchNorm1D, BatchNorm2D, ReLU
-import numpy as np
+from paddle.nn import Linear, BatchNorm1D, ReLU
+
 from paddle_tabnet import sparsemax
 
 

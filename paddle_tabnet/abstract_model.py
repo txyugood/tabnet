@@ -1,11 +1,25 @@
-import paddle
-import paddle.nn as nn
-from dataclasses import dataclass, field
-from typing import List, Any, Dict
-import numpy as np
-from scipy.sparse import csc_matrix
+import copy
+import json
+import warnings
 from abc import abstractmethod
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import List, Any, Dict
+
+import numpy as np
+import paddle
+from scipy.sparse import csc_matrix
+from sklearn.base import BaseEstimator
+from sklearn.utils import check_array
+
 from paddle_tabnet import tab_network
+from paddle_tabnet.callbacks import (
+    CallbackContainer,
+    History,
+    EarlyStopping,
+    LRSchedulerCallback,
+)
+from paddle_tabnet.metrics import MetricContainer, check_metrics
 from paddle_tabnet.utils import (
     PredictDataset,
     create_explain_matrix,
@@ -14,23 +28,7 @@ from paddle_tabnet.utils import (
     define_device,
     ComplexEncoder,
 )
-from paddle_tabnet.callbacks import (
-    CallbackContainer,
-    History,
-    EarlyStopping,
-    LRSchedulerCallback,
-)
-from paddle_tabnet.metrics import MetricContainer, check_metrics
-from sklearn.base import BaseEstimator
-from sklearn.utils import check_array
-
-import io
-import json
-from pathlib import Path
-import shutil
-import zipfile
-import warnings
-import copy
+from utils.utils import load_pretrained_model
 
 
 @dataclass
@@ -368,7 +366,7 @@ class TabModel(BaseEstimator):
             else:
                 init_params[key] = val
         saved_params["init_params"] = init_params
-
+        init_params.pop('optimizer_params')
         class_attrs = {
             "preds_mapper": self.preds_mapper
         }
@@ -377,12 +375,14 @@ class TabModel(BaseEstimator):
         # Create folder
         Path(path).mkdir(parents=True, exist_ok=True)
 
-        # # Save models params
-        # with open(Path(path).joinpath("model_params.json"), "w", encoding="utf8") as f:
-        #     json.dump(saved_params, f, cls=ComplexEncoder)
+        # Save models params
+        with open(Path(path).joinpath("model_params.json"), "w", encoding="utf8") as f:
+            json.dump(saved_params, f, cls=ComplexEncoder)
 
         # Save state_dict
-        paddle.save(self.network.state_dict(), Path(path).joinpath("network.pdparams"))
+        paddle.save(self.network.state_dict(), Path(path).joinpath('model.pdparams'))
+        paddle.save(self._optimizer.state_dict(),
+                    Path(path).joinpath('model.pdopt'))
         print(f"Successfully saved model at {path}")
         return f"{path}"
 
@@ -394,29 +394,14 @@ class TabModel(BaseEstimator):
         filepath : str
             Path of the model.
         """
-        try:
-            with zipfile.ZipFile(filepath) as z:
-                with z.open("model_params.json") as f:
-                    loaded_params = json.load(f)
-                    loaded_params["init_params"]["device_name"] = self.device_name
-                with z.open("network.pt") as f:
-                    try:
-                        saved_state_dict = torch.load(f, map_location=self.device)
-                    except io.UnsupportedOperation:
-                        # In Python <3.7, the returned file object is not seekable (which at least
-                        # some versions of PyTorch require) - so we'll try buffering it in to a
-                        # BytesIO instead:
-                        saved_state_dict = torch.load(
-                            io.BytesIO(f.read()),
-                            map_location=self.device,
-                        )
-        except KeyError:
-            raise KeyError("Your zip file is missing at least one component")
+        with open(Path(filepath).joinpath('model_params.json')) as f:
+            loaded_params = json.load(f)
+            loaded_params["init_params"]["device_name"] = self.device_name
 
         self.__init__(**loaded_params["init_params"])
 
         self._set_network()
-        self.network.load_state_dict(saved_state_dict)
+        load_pretrained_model(self.network, Path(filepath).joinpath('model.pdparams'))
         self.network.eval()
         self.load_class_attrs(loaded_params["class_attrs"])
 
@@ -443,6 +428,7 @@ class TabModel(BaseEstimator):
                                                                self._optimizer.get_lr()))
 
             self._callback_container.on_batch_end(batch_idx, batch_logs)
+            break
 
         epoch_logs = {"lr": self._optimizer.get_lr()}
         self.history.epoch_metrics.update(epoch_logs)
@@ -508,6 +494,7 @@ class TabModel(BaseEstimator):
             scores = self._predict_batch(X)
             list_y_true.append(y)
             list_y_score.append(scores)
+            break
 
         y_true, scores = self.stack_batches(list_y_true, list_y_score)
 

@@ -1,11 +1,10 @@
-import os
-import time
-import datetime
 import copy
-import paddle
-import numpy as np
+import datetime
+import time
 from dataclasses import dataclass, field
 from typing import List, Any
+
+import numpy as np
 
 
 class Callback:
@@ -151,12 +150,7 @@ class EarlyStopping(Callback):
         acc = logs['valid_accuracy']
         if acc > self.best_acc:
             self.best_acc = acc
-            best_path = 'output/best_model'
-            if not os.path.exists(best_path):
-                os.makedirs(best_path)
-            paddle.save(self.trainer.network.state_dict(), os.path.join(best_path, 'model.pdparams'))
-            paddle.save(self.trainer._optimizer.state_dict(),
-                        os.path.join(best_path, 'model.pdopt'))
+            self.trainer.save_model('output/best_model')
 
 
     def on_train_end(self, logs=None):

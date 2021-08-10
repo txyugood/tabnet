@@ -128,3 +128,4 @@ dmypy.json
 .pyre/
 /data/
 /test_model/
+/output/
