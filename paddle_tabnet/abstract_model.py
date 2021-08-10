@@ -428,7 +428,6 @@ class TabModel(BaseEstimator):
                                                                self._optimizer.get_lr()))
 
             self._callback_container.on_batch_end(batch_idx, batch_logs)
-            break
 
         epoch_logs = {"lr": self._optimizer.get_lr()}
         self.history.epoch_metrics.update(epoch_logs)
@@ -494,7 +493,6 @@ class TabModel(BaseEstimator):
             scores = self._predict_batch(X)
             list_y_true.append(y)
             list_y_score.append(scores)
-            break
 
         y_true, scores = self.stack_batches(list_y_true, list_y_score)
 
