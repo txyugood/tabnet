@@ -506,9 +506,6 @@ class TabModel(BaseEstimator):
         # Main loop
         for batch_idx, (X, y) in enumerate(loader):
             scores = self._predict_batch(X)
-            print("epoch:{} batch_idx:{} scores:{}".format(epoch_idx,
-                                                           batch_idx,
-                                                           scores))
             list_y_true.append(y)
             list_y_score.append(scores)
 
