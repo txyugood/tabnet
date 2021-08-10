@@ -121,7 +121,7 @@ y_valid = train[target].values[valid_indices]
 X_test = train[features].values[test_indices]
 y_test = train[target].values[test_indices]
 
-max_epochs = 1
+max_epochs = 6850
 
 clf.fit(
     X_train=X_train, y_train=y_train,
