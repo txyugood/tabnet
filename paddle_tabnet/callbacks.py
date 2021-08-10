@@ -154,8 +154,8 @@ class EarlyStopping(Callback):
             best_path = 'output/best_model'
             if not os.path.exists(best_path):
                 os.makedirs(best_path)
-            paddle.save(self.trainer.network.state_dict, os.path.join(best_path, 'model.pdparams'))
-            paddle.save(self.trainer.optimizer_fn.state_dict(),
+            paddle.save(self.trainer.network.state_dict(), os.path.join(best_path, 'model.pdparams'))
+            paddle.save(self.trainer._optimizer.state_dict(),
                         os.path.join(best_path, 'model.pdopt'))
 
 
