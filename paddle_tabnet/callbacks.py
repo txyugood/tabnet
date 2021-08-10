@@ -1,6 +1,8 @@
+import os
 import time
 import datetime
 import copy
+import paddle
 import numpy as np
 from dataclasses import dataclass, field
 from typing import List, Any
@@ -123,6 +125,7 @@ class EarlyStopping(Callback):
         self.wait = 0
         self.best_weights = None
         self.best_loss = np.inf
+        self.best_acc = 0
         if self.is_maximize:
             self.best_loss = -self.best_loss
         super().__init__()
@@ -145,6 +148,16 @@ class EarlyStopping(Callback):
                 self.stopped_epoch = epoch
                 self.trainer._stop_training = True
             self.wait += 1
+        acc = logs['valid_accuracy']
+        if acc > self.best_acc:
+            self.best_acc = acc
+            best_path = 'output/best_model'
+            if not os.path.exists(best_path):
+                os.makedirs(best_path)
+            paddle.save(self.trainer.network.state_dict, os.path.join(best_path, 'model.pdparams'))
+            paddle.save(self.trainer.optimizer_fn.state_dict(),
+                        os.path.join(best_path, 'model.pdopt'))
+
 
     def on_train_end(self, logs=None):
         self.trainer.best_epoch = self.best_epoch
