@@ -40,7 +40,7 @@ class SparsemaxFunction(PyLayer):
     """
 
     @staticmethod
-    def forward(ctx, input, axis=-1):
+    def forward(ctx, input, axis=-1, trainning=True):
         """sparsemax: normalizing sparse transform (a la softmax)
 
         Parameters
@@ -63,8 +63,8 @@ class SparsemaxFunction(PyLayer):
         input -= max_val  # same numerical stability trick as for softmax
         tau, supp_size = SparsemaxFunction._threshold_and_support(input, axis=axis)
         output = paddle.clip(input - tau, min=0)
-
-        ctx.save_for_backward(supp_size, output)
+        if trainning:
+            ctx.save_for_backward(supp_size, output)
         return output
 
     @staticmethod
@@ -135,8 +135,8 @@ class Sparsemax(nn.Layer):
         self.axis = axis
         super(Sparsemax, self).__init__()
 
-    def forward(self, input):
-        return sparsemax(input, self.axis)
+    def forward(self, input, training):
+        return sparsemax(input, self.axis, training)
 
 
 class Entmax15Function(PyLayer):

@@ -649,7 +649,7 @@ class AttentiveTransformer(nn.Layer):
         x = self.fc(processed_feat)
         x = self.bn(x)
         x = paddle.multiply(x, priors)
-        x = self.selector(x)
+        x = self.selector(x, self.training)
         return x
 
 
