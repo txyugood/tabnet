@@ -102,13 +102,12 @@ clf = TabNetClassifier(
     cat_idxs=cat_idxs,
     cat_dims=cat_dims,
     cat_emb_dim=1,
-    lambda_sparse=1e-4, momentum=0.3, clip_value=2.,
+    lambda_sparse=1e-4, momentum=0.7, clip_value=2.,
     optimizer_fn=paddle.optimizer.Adam,
     optimizer_params=dict(learning_rate=2e-2),
     scheduler_params={
-        "learning_rate": 2e-2, "gamma": 0.95,
-        "step_size": 20},
-    scheduler_fn=paddle.optimizer.lr.StepDecay,
+        "learning_rate": 2e-2, "gamma": 0.95},
+    scheduler_fn=paddle.optimizer.lr.ExponentialDecay,
     epsilon=1e-15
 )
 

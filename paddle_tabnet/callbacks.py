@@ -275,24 +275,11 @@ class LRSchedulerCallback(Callback):
     def __post_init__(
         self,
     ):
-        self.is_metric_related = hasattr(self.scheduler_fn, "is_better")
+        self.iters = 0
         self.scheduler = self.scheduler_fn(**self.scheduler_params)
         super().__init__()
 
     def on_batch_end(self, batch, logs=None):
-        if self.is_batch_level:
+        self.iters += 1
+        if self.iters % 500 == 0:
             self.scheduler.step()
-        else:
-            pass
-
-    def on_epoch_end(self, epoch, logs=None):
-        current_loss = logs.get(self.early_stopping_metric)
-        if current_loss is None:
-            return
-        if self.is_batch_level:
-            pass
-        else:
-            if self.is_metric_related:
-                self.scheduler.step(current_loss)
-            else:
-                self.scheduler.step()

@@ -437,9 +437,10 @@ class TabModel(BaseEstimator):
             self._callback_container.on_batch_begin(batch_idx)
 
             batch_logs = self._train_batch(X, y)
-            print("epoch:{} batch_idx:{} loss:{}".format(epoch_idx,
-                                                         batch_idx,
-                                                         batch_logs["loss"]))
+            print("epoch:{} batch_idx:{} loss:{} lr:{}".format(epoch_idx,
+                                                               batch_idx,
+                                                               batch_logs["loss"],
+                                                               self._optimizer.get_lr()))
 
             self._callback_container.on_batch_end(batch_idx, batch_logs)
 
