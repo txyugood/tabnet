@@ -1,3 +1,4 @@
+import numpy as np
 import paddle
 import paddle.nn as nn
 from paddle.nn import Linear, BatchNorm1D, ReLU

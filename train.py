@@ -104,7 +104,7 @@ clf = TabNetClassifier(
     cat_emb_dim=1,
     lambda_sparse=1e-4, momentum=0.7, clip_value=2.,
     optimizer_fn=paddle.optimizer.Momentum,
-    optimizer_params=dict(learning_rate=2e-2, weight_deacy=5e-4),
+    optimizer_params=dict(learning_rate=2e-2, weight_decay=5e-4),
     scheduler_params={
         "learning_rate": 2e-2, "gamma": 0.95},
     scheduler_fn=paddle.optimizer.lr.ExponentialDecay,
@@ -126,9 +126,9 @@ max_epochs = 6850
 
 clf.fit(
     X_train=X_train, y_train=y_train,
-    eval_set=[(X_train, y_train), (X_valid, y_valid)],
-    eval_name=['train', 'valid'],
-    max_epochs=max_epochs, patience=100,
+    eval_set=[(X_valid, y_valid)],
+    eval_name=['valid'],
+    max_epochs=max_epochs, patience=1000,
     batch_size=16384, virtual_batch_size=256
 )
 

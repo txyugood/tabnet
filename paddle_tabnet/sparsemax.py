@@ -72,7 +72,12 @@ class SparsemaxFunction(PyLayer):
         supp_size, output = ctx.saved_tensor()
         axis = ctx.axis
         grad_input = grad_output.clone()
-        grad_input[output == 0] = 0
+        # grad_input[output == 0] = 0
+
+        idx = paddle.fluid.layers.where(output == 0)
+        grad_input_gather = paddle.gather_nd(grad_input, idx)
+        grad_input_gather = 0 - grad_input_gather
+        grad_input = paddle.scatter_nd_add(grad_input, idx, grad_input_gather)
 
         v_hat = paddle.sum(grad_input, axis=axis)
         supp_size = paddle.cast(supp_size, dtype=output.dtype)
