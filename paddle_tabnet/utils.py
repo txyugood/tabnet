@@ -23,14 +23,23 @@ class TorchDataset(Dataset):
     """
 
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.samples = []
+        for x_i, y_i in zip(x, y):
+            self.samples.append([x_i, y_i])
+        self.length = len(self.samples)
+        self.iter = 0
 
     def __len__(self):
-        return len(self.x)
+        return len(self.samples)
 
     def __getitem__(self, index):
-        x, y = self.x[index], self.y[index]
+        if self.iter == 0:
+            print('shuffle')
+            np.random.shuffle(self.samples)
+        self.iter += 1
+        if self.iter == self.length - 1:
+            self.iter = 0
+        x, y = self.samples[index]
         return x, y
 
 

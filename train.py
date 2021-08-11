@@ -131,25 +131,3 @@ clf.fit(
     max_epochs=max_epochs, patience=1000,
     batch_size=16384, virtual_batch_size=256
 )
-
-
-# To get final results you may need to use a mapping for classes
-# as you are allowed to use targets like ["yes", "no", "maybe", "I don't know"]
-
-preds_mapper = { idx : class_name for idx, class_name in enumerate(clf.classes_)}
-
-preds = clf.predict_proba(X_test)
-
-y_pred = np.vectorize(preds_mapper.get)(np.argmax(preds, axis=1))
-
-test_acc = accuracy_score(y_pred=y_pred, y_true=y_test)
-
-print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
-print(f"FINAL TEST SCORE FOR {dataset_name} : {test_acc}")
-
-y_pred = clf.predict(X_test)
-test_acc = accuracy_score(y_pred=y_pred, y_true=y_test)
-print(f"FINAL TEST SCORE FOR {dataset_name} : {test_acc}")
-
-
-saved_filename = clf.save_model('test_model')
