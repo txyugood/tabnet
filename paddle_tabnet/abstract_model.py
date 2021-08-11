@@ -44,6 +44,7 @@ class TabModel(BaseEstimator):
     cat_emb_dim: int = 1
     n_independent: int = 2
     n_shared: int = 2
+    warmup: bool = False
     epsilon: float = 1e-15
     momentum: float = 0.02
     lambda_sparse: float = 1e-3
@@ -116,7 +117,6 @@ class TabModel(BaseEstimator):
         num_workers=0,
         drop_last=False,
         callbacks=None,
-        pin_memory=True,
         from_unsupervised=None,
     ):
         """Train a neural network stored in self.network
@@ -157,8 +157,6 @@ class TabModel(BaseEstimator):
             Whether to drop last batch during training
         callbacks : list of callback function
             List of custom callbacks
-        pin_memory: bool
-            Whether to set pin_memory to True or False during training
         from_unsupervised: unsupervised trained model
             Use a previously self supervised model as starting weights
         """
@@ -619,6 +617,7 @@ class TabModel(BaseEstimator):
                 scheduler_params=self.scheduler_params,
                 early_stopping_metric=self.early_stopping_metric,
                 is_batch_level=is_batch_level,
+                warmup=self.warmup
             )
             callbacks.append(scheduler)
 

@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import List, Any
 
 import numpy as np
+import paddle
 
 
 class Callback:
@@ -265,12 +266,19 @@ class LRSchedulerCallback(Callback):
     scheduler_params: dict
     early_stopping_metric: str
     is_batch_level: bool = False
+    warmup: bool = False
 
     def __post_init__(
         self,
     ):
         self.iters = 0
         self.scheduler = self.scheduler_fn(**self.scheduler_params)
+        if self.warmup:
+            self.scheduler = paddle.optimizer.lr.LinearWarmup(self.scheduler,
+                                                              warmup_steps=2000,
+                                                              start_lr=0,
+                                                              end_lr=self.scheduler.base_lr)
+
         super().__init__()
 
     def on_batch_end(self, batch, logs=None):
