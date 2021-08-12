@@ -64,6 +64,7 @@ class TabModel(BaseEstimator):
     n_indep_decoder: int = 1
     resume_model: str = None
     last_epoch: int = -1
+    last_best_acc: float = 0.96512
 
     def __post_init__(self):
         self.batch_size = 1024
@@ -222,10 +223,12 @@ class TabModel(BaseEstimator):
             opti_state_dict = paddle.load(ckpt_path)
             self.network.set_state_dict(para_state_dict)
             self._optimizer.set_state_dict(opti_state_dict)
-            start_opoch = self.last_epoch
+            start_opoch = self.last_epoch + 1
             for c in self._callback_container.callbacks:
                 if isinstance(c, LRSchedulerCallback):
                     c.iters = start_opoch * 18
+                if isinstance(c, EarlyStopping):
+                    c.best_acc = self.last_best_acc
 
 
         if from_unsupervised is not None:
