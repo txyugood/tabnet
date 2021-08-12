@@ -1,3 +1,4 @@
+import os
 import copy
 import json
 import warnings
@@ -61,6 +62,8 @@ class TabModel(BaseEstimator):
     device_name: str = "auto"
     n_shared_decoder: int = 1
     n_indep_decoder: int = 1
+    resume_model: str = None
+    last_epoch: int = -1
 
     def __post_init__(self):
         self.batch_size = 1024
@@ -210,6 +213,21 @@ class TabModel(BaseEstimator):
                 break
         self._set_optimizer()
 
+        start_opoch = 0
+        if self.resume_model is not None and self.last_epoch > 0:
+            resume_model = os.path.normpath(self.resume_model)
+            ckpt_path = os.path.join(resume_model, 'model.pdparams')
+            para_state_dict = paddle.load(ckpt_path)
+            ckpt_path = os.path.join(resume_model, 'model.pdopt')
+            opti_state_dict = paddle.load(ckpt_path)
+            self.network.set_state_dict(para_state_dict)
+            self._optimizer.set_state_dict(opti_state_dict)
+            start_opoch = self.last_epoch
+            for c in self._callback_container.callbacks:
+                if isinstance(c, LRSchedulerCallback):
+                    c.iters = start_opoch * 18
+
+
         if from_unsupervised is not None:
             print("Loading weights from unsupervised pretraining")
             self.load_weights_from_unsupervised(from_unsupervised)
@@ -218,7 +236,7 @@ class TabModel(BaseEstimator):
         self._callback_container.on_train_begin()
 
         # Training loop over epochs
-        for epoch_idx in range(self.max_epochs):
+        for epoch_idx in range(start_opoch, self.max_epochs):
 
             # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)

@@ -109,7 +109,9 @@ clf = TabNetClassifier(
         "learning_rate": 2e-2, "gamma": 0.95},
     scheduler_fn=paddle.optimizer.lr.ExponentialDecay,
     warmup=True,
-    epsilon=1e-15
+    epsilon=1e-15,
+    resume_model='/Users/alex/Downloads/best_model',
+    last_epoch=1758
 )
 
 
