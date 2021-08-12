@@ -26,19 +26,11 @@ class TorchDataset(Dataset):
         self.samples = []
         for x_i, y_i in zip(x, y):
             self.samples.append([x_i, y_i])
-        self.length = len(self.samples)
-        self.iter = 0
 
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, index):
-        if self.iter == 0:
-            print('shuffle')
-            np.random.shuffle(self.samples)
-        self.iter += 1
-        if self.iter == self.length - 1:
-            self.iter = 0
         x, y = self.samples[index]
         return x, y
 
@@ -62,54 +54,6 @@ class PredictDataset(Dataset):
     def __getitem__(self, index):
         x = self.x[index]
         return x
-
-
-def create_sampler(weights, y_train):
-    """
-    This creates a sampler from the given weights
-
-    Parameters
-    ----------
-    weights : either 0, 1, dict or iterable
-        if 0 (default) : no weights will be applied
-        if 1 : classification only, will balanced class with inverse frequency
-        if dict : keys are corresponding class values are sample weights
-        if iterable : list or np array must be of length equal to nb elements
-                      in the training set
-    y_train : np.array
-        Training targets
-    """
-    if isinstance(weights, int):
-        if weights == 0:
-            need_shuffle = True
-            sampler = None
-        elif weights == 1:
-            need_shuffle = False
-            class_sample_count = np.array(
-                [len(np.where(y_train == t)[0]) for t in np.unique(y_train)]
-            )
-
-            weights = 1.0 / class_sample_count
-
-            samples_weight = np.array([weights[t] for t in y_train])
-
-            samples_weight = paddle.to_tensor(samples_weight)
-            sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
-        else:
-            raise ValueError("Weights should be either 0, 1, dictionnary or list.")
-    elif isinstance(weights, dict):
-        # custom weights per class
-        need_shuffle = False
-        samples_weight = np.array([weights[t] for t in y_train])
-        sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
-    else:
-        # custom weights
-        if len(weights) != len(y_train):
-            raise ValueError("Custom weights should match number of train samples.")
-        need_shuffle = False
-        samples_weight = np.array(weights)
-        sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
-    return need_shuffle, sampler
 
 
 def create_dataloaders(
@@ -149,15 +93,15 @@ def create_dataloaders(
     train_dataloader, valid_dataloader : torch.DataLoader, torch.DataLoader
         Training and validation dataloaders
     """
-    need_shuffle, sampler = create_sampler(weights, y_train)
+    need_shuffle = True
+    dataset = TorchDataset(X_train.astype(np.float32), y_train)
+    batch_sampler = paddle.io.DistributedBatchSampler(
+        dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     train_dataloader = DataLoader(
-        TorchDataset(X_train.astype(np.float32), y_train),
-        batch_size=batch_size,
-        batch_sampler=sampler,
-        shuffle=need_shuffle,
-        num_workers=0,
-        drop_last=drop_last
+        dataset,
+        batch_sampler=batch_sampler,
+        num_workers=0
     )
 
     valid_dataloaders = []
