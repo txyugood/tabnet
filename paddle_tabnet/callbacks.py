@@ -244,8 +244,9 @@ class LRSchedulerCallback(Callback):
 
     def on_batch_end(self, batch, logs=None):
         self.iters += 1
-        if self.iters <= 2000:
-            self.scheduler.step()
-        else:
-            if self.iters % 500 == 0:
-                self.scheduler.step()
+        self.scheduler.step()
+        # if self.iters <= 2000:
+        #     self.scheduler.step()
+        # else:
+        #     if self.iters % 500 == 0:
+        #         self.scheduler.step()

@@ -106,12 +106,13 @@ clf = TabNetClassifier(
     optimizer_fn=paddle.optimizer.Adam,
     optimizer_params=dict(learning_rate=2e-2),
     scheduler_params={
-        "learning_rate": 2e-2, "gamma": 0.95},
-    scheduler_fn=paddle.optimizer.lr.ExponentialDecay,
+        "learning_rate": 2e-2, "end_lr":0, "power":0.9, "decay_steps":3000 * 18 - 2000},
+    scheduler_fn=paddle.optimizer.lr.PolynomialDecay,
     warmup=True,
     epsilon=1e-15,
-    resume_model='/Users/alex/Downloads/best_model',
-    last_epoch=1758
+    resume_model='output/best_model',
+    last_epoch=1552,
+    last_best_acc=0.95889
 )
 
 
@@ -124,7 +125,7 @@ y_valid = train[target].values[valid_indices]
 X_test = train[features].values[test_indices]
 y_test = train[target].values[test_indices]
 
-max_epochs = 6850
+max_epochs = 3000
 
 clf.fit(
     X_train=X_train, y_train=y_train,
