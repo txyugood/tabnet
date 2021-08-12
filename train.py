@@ -110,9 +110,10 @@ clf = TabNetClassifier(
     scheduler_fn=paddle.optimizer.lr.PolynomialDecay,
     warmup=True,
     epsilon=1e-15,
-    resume_model='output/best_model',
-    last_epoch=1552,
-    last_best_acc=0.95889
+    # resume_model='output/best_model',
+    # last_epoch=1552,
+    # last_best_acc=0.95889,
+    prtrained_model='output/best_model'
 )
 
 

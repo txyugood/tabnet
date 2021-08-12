@@ -65,6 +65,7 @@ class TabModel(BaseEstimator):
     resume_model: str = None
     last_epoch: int = -1
     last_best_acc: float = 0.96512
+    prtrained_model: str = None
 
     def __post_init__(self):
         self.batch_size = 1024
@@ -229,6 +230,12 @@ class TabModel(BaseEstimator):
                     c.iters = start_opoch * 18
                 if isinstance(c, EarlyStopping):
                     c.best_acc = self.last_best_acc
+
+            if self.prtrained_model is not None:
+                resume_model = os.path.normpath(self.resume_model)
+                ckpt_path = os.path.join(resume_model, 'model.pdparams')
+                para_state_dict = paddle.load(ckpt_path)
+                self.network.set_state_dict(para_state_dict)
 
 
         if from_unsupervised is not None:
