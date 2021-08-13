@@ -1,3 +1,4 @@
+import math
 import paddle
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
@@ -106,14 +107,10 @@ clf = TabNetClassifier(
     optimizer_fn=paddle.optimizer.Adam,
     optimizer_params=dict(learning_rate=2e-2),
     scheduler_params={
-        "learning_rate": 2e-2, "end_lr":0, "power":0.9, "decay_steps":3000 * 18 - 2000},
-    scheduler_fn=paddle.optimizer.lr.PolynomialDecay,
+        "learning_rate": 2e-2, "gamma": 0.95, "step_size": 500},
+    scheduler_fn=paddle.optimizer.lr.StepDecay,
     warmup=True,
-    epsilon=1e-15,
-    # resume_model='output/best_model',
-    # last_epoch=1552,
-    # last_best_acc=0.95889,
-    prtrained_model='output/best_model'
+    epsilon=1e-15
 )
 
 
@@ -126,12 +123,12 @@ y_valid = train[target].values[valid_indices]
 X_test = train[features].values[test_indices]
 y_test = train[target].values[test_indices]
 
-max_epochs = 3000
+max_epochs = math.ceil(130000 / 18)
 
 clf.fit(
     X_train=X_train, y_train=y_train,
     eval_set=[(X_valid, y_valid)],
     eval_name=['valid'],
-    max_epochs=max_epochs, patience=1000,
+    max_epochs=max_epochs, patience=10000,
     batch_size=16384, virtual_batch_size=256
 )
