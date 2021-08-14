@@ -109,7 +109,6 @@ clf = TabNetClassifier(
     scheduler_params={
         "learning_rate": 2e-2, "gamma": 0.95, "step_size": 500},
     scheduler_fn=paddle.optimizer.lr.StepDecay,
-    warmup=True,
     epsilon=1e-15
 )
 
@@ -127,8 +126,8 @@ max_epochs = math.ceil(130000 / 18)
 
 clf.fit(
     X_train=X_train, y_train=y_train,
-    eval_set=[(X_valid, y_valid)],
-    eval_name=['valid'],
+    eval_set=[(X_test, y_test)],
+    eval_name=['test'],
     max_epochs=max_epochs, patience=10000,
     batch_size=16384, virtual_batch_size=256
 )

@@ -131,7 +131,7 @@ class EarlyStopping(Callback):
         super().__init__()
 
     def on_epoch_end(self, epoch, logs=None):
-        acc = logs['valid_accuracy']
+        acc = logs['test_accuracy']
         if acc > self.best_acc:
             self.best_weights = copy.deepcopy(self.trainer.network.state_dict())
             self.best_acc = acc

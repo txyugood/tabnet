@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import paddle
 import paddle.nn as nn
@@ -6,17 +7,40 @@ from paddle.nn import Linear, BatchNorm1D, ReLU
 from paddle_tabnet import sparsemax
 
 
+def _calculate_fan_in_and_fan_out(tensor):
+    dimensions = tensor.ndim
+    if dimensions < 2:
+        raise ValueError("Fan in and fan out can not be computed for tensor with fewer than 2 dimensions")
+
+    num_input_fmaps = tensor.shape[1]
+    num_output_fmaps = tensor.shape[0]
+    receptive_field_size = 1
+    if tensor.ndim > 2:
+        # math.prod is not always available, accumulate the product manually
+        # we could use functools.reduce but that is not supported by TorchScript
+        for s in tensor.shape[2:]:
+            receptive_field_size *= s
+    fan_in = num_input_fmaps * receptive_field_size
+    fan_out = num_output_fmaps * receptive_field_size
+
+    return fan_in, fan_out
+
+
 def initialize_non_glu(module, input_dim, output_dim):
-    initializer = paddle.nn.initializer.XavierNormal()
+    fan_in, fan_out = _calculate_fan_in_and_fan_out(module.weight)
+    gain_value = np.sqrt((input_dim + output_dim) / np.sqrt(4 * input_dim))
+    std = gain_value * math.sqrt(2.0 / float(fan_in + fan_out))
+    initializer = paddle.nn.initializer.Normal(mean=0.0, std=std)
     initializer(module.weight, module.weight.block)
-    # torch.nn.init.zeros_(module.bias)
     return
 
 
 def initialize_glu(module, input_dim, output_dim):
-    initializer = paddle.nn.initializer.XavierNormal()
+    fan_in, fan_out = _calculate_fan_in_and_fan_out(module.weight)
+    gain_value = np.sqrt((input_dim + output_dim) / np.sqrt(input_dim))
+    std = gain_value * math.sqrt(2.0 / float(fan_in + fan_out))
+    initializer = paddle.nn.initializer.Normal(mean=0.0, std=std)
     initializer(module.weight, module.weight.block)
-    # torch.nn.init.zeros_(module.bias)
     return
 
 
@@ -158,6 +182,7 @@ class TabNetEncoder(nn.Layer):
 
     def forward(self, x, prior=None):
         c = paddle.to_tensor(np.array([0]).astype('float32'))
+        c.stop_gradient = True
         x_1 = x + c
         x_1.stop_gradient = False
         x = self.initial_bn(x_1)
