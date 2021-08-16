@@ -31,7 +31,7 @@ class CosineAnnealingWarmRestarts(LRScheduler):
         https://arxiv.org/abs/1608.03983
     """
 
-    def __init__(self, optimizer, T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False):
+    def __init__(self, learning_rate, T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False):
         if T_0 <= 0 or not isinstance(T_0, int):
             raise ValueError("Expected positive integer T_0, but got {}".format(T_0))
         if T_mult < 1 or not isinstance(T_mult, int):
@@ -41,7 +41,7 @@ class CosineAnnealingWarmRestarts(LRScheduler):
         self.T_mult = T_mult
         self.eta_min = eta_min
 
-        super(CosineAnnealingWarmRestarts, self).__init__(optimizer, last_epoch, verbose)
+        super(CosineAnnealingWarmRestarts, self).__init__(learning_rate=learning_rate, last_epoch=last_epoch, verbose=verbose)
 
         self.T_cur = self.last_epoch
 
@@ -50,30 +50,6 @@ class CosineAnnealingWarmRestarts(LRScheduler):
 
 
     def step(self, epoch=None):
-        """Step could be called after every batch update
-
-        Example:
-            >>> scheduler = CosineAnnealingWarmRestarts(optimizer, T_0, T_mult)
-            >>> iters = len(dataloader)
-            >>> for epoch in range(20):
-            >>>     for i, sample in enumerate(dataloader):
-            >>>         inputs, labels = sample['inputs'], sample['labels']
-            >>>         optimizer.zero_grad()
-            >>>         outputs = net(inputs)
-            >>>         loss = criterion(outputs, labels)
-            >>>         loss.backward()
-            >>>         optimizer.step()
-            >>>         scheduler.step(epoch + i / iters)
-
-        This function can be called in an interleaved way.
-
-        Example:
-            >>> scheduler = CosineAnnealingWarmRestarts(optimizer, T_0, T_mult)
-            >>> for epoch in range(20):
-            >>>     scheduler.step()
-            >>> scheduler.step(26)
-            >>> scheduler.step() # scheduler.step(27), instead of scheduler(20)
-        """
 
         if epoch is None and self.last_epoch < 0:
             epoch = 0

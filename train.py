@@ -1,12 +1,11 @@
-import math
-import paddle
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-import pandas as pd
 import numpy as np
+import paddle
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 from paddle_tabnet.tab_model import TabNetClassifier
+from utils.CosineAnnealingWarmRestarts import CosineAnnealingWarmRestarts
 
 np.random.seed(0)
 
@@ -16,8 +15,6 @@ import wget
 from pathlib import Path
 import shutil
 import gzip
-
-from matplotlib import pyplot as plt
 
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
 dataset_name = 'forest-cover-type'
@@ -110,9 +107,8 @@ clf = TabNetClassifier(
     #     "learning_rate": 2e-2, "end_lr":0, "power":0.9, "decay_steps":3000 * 22},
     # scheduler_fn=paddle.optimizer.lr.PolynomialDecay,
     scheduler_params={
-        "learning_rate": 2e-2, "end_lr":0, "power":0.9, "decay_steps":130000 - 2000},
-    scheduler_fn=paddle.optimizer.lr.PolynomialDecay,
-    warmup=True,
+        "learning_rate": 2e-2,  "T_0": 2000, "T_mult": 2},
+    scheduler_fn=CosineAnnealingWarmRestarts,
     epsilon=1e-15
 )
 
