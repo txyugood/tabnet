@@ -96,7 +96,7 @@ def create_dataloaders(
     need_shuffle = True
     dataset = TorchDataset(X_train.astype(np.float32), y_train)
     batch_sampler = paddle.io.DistributedBatchSampler(
-        dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+        dataset, batch_size=batch_size, shuffle=True, drop_last=False)
 
     train_dataloader = DataLoader(
         dataset,

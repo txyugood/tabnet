@@ -73,7 +73,7 @@ n_total = len(train)
 train_val_indices, test_indices = train_test_split(
     range(n_total), test_size=0.2, random_state=0)
 train_indices, valid_indices = train_test_split(
-    train_val_indices, test_size=0.2 / 0.6, random_state=0)
+    train_val_indices, test_size=0.2 / 0.8, random_state=0)
 
 categorical_columns = []
 categorical_dims =  {}
@@ -106,9 +106,13 @@ clf = TabNetClassifier(
     lambda_sparse=1e-4, momentum=0.7, clip_value=2.,
     optimizer_fn=paddle.optimizer.Adam,
     optimizer_params=dict(learning_rate=2e-2),
+    # scheduler_params={
+    #     "learning_rate": 2e-2, "end_lr":0, "power":0.9, "decay_steps":3000 * 22},
+    # scheduler_fn=paddle.optimizer.lr.PolynomialDecay,
     scheduler_params={
-        "learning_rate": 2e-2, "gamma": 0.95, "step_size": 500},
-    scheduler_fn=paddle.optimizer.lr.StepDecay,
+        "learning_rate": 2e-2, "end_lr":0, "power":0.9, "decay_steps":130000 - 2000},
+    scheduler_fn=paddle.optimizer.lr.PolynomialDecay,
+    warmup=True,
     epsilon=1e-15
 )
 
@@ -122,7 +126,7 @@ y_valid = train[target].values[valid_indices]
 X_test = train[features].values[test_indices]
 y_test = train[target].values[test_indices]
 
-max_epochs = math.ceil(130000 / 18)
+max_epochs = 130000 // 22
 
 clf.fit(
     X_train=X_train, y_train=y_train,
