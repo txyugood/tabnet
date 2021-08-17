@@ -236,7 +236,7 @@ class LRSchedulerCallback(Callback):
         self.scheduler = self.scheduler_fn(**self.scheduler_params)
         if self.warmup:
             self.scheduler = paddle.optimizer.lr.LinearWarmup(self.scheduler,
-                                                              warmup_steps=2000,
+                                                              warmup_steps=5000,
                                                               start_lr=0,
                                                               end_lr=self.scheduler.base_lr)
 
