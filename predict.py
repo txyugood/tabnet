@@ -1,3 +1,5 @@
+import argparse
+
 import paddle
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
@@ -17,6 +19,16 @@ import shutil
 import gzip
 
 from matplotlib import pyplot as plt
+
+
+parser = argparse.ArgumentParser(description='Model evaluation')
+parser.add_argument(
+    '--model_path',
+    dest='model_path',
+    help='The path of model for evaluation',
+    type=str,
+    default=None)
+args = parser.parse_args()
 
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
 dataset_name = 'forest-cover-type'
@@ -72,7 +84,7 @@ n_total = len(train)
 train_val_indices, test_indices = train_test_split(
     range(n_total), test_size=0.2, random_state=0)
 train_indices, valid_indices = train_test_split(
-    train_val_indices, test_size=0.2 / 0.6, random_state=0)
+    train_val_indices, test_size=0.2 / 0.8, random_state=0)
 
 categorical_columns = []
 categorical_dims =  {}
@@ -121,7 +133,7 @@ y_valid = train[target].values[valid_indices]
 X_test = train[features].values[test_indices]
 y_test = train[target].values[test_indices]
 
-clf.load_model("/Users/alex/Downloads/best_model")
+clf.load_model(args.model_path)
 
 y_pred = clf.predict(X_test)
 test_acc = accuracy_score(y_pred=y_pred, y_true=y_test)
