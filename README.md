@@ -27,7 +27,10 @@ PaddlePaddle == 2.1.2
 
 python == 3.7
 
-
+还需安装wget自动下载数据集。安装命令如下：
+```
+pip install wget
+```
 # 4.训练
 
 1. 训练使用了原文中数据集划分方式，原文参考的论文为《Xgboost: Scalable GPU accelerated learning》。
@@ -47,8 +50,48 @@ python == 3.7
 4. 训练命令：
     ```
     cd tabnet
-    python train.py
+    nohup python train.py > tabnet.log &
     ```
+    这样程序会后台运行。
+    通过以下代码，可以随时查看log。
+    ```
+    tail -f tabnet.log
+    ```
+
+    还可以通过以下命令查看当前保存的最优模型精度。
+
+    ```
+    cat tabnet.log | grep -n1 best_model
+    ```
+
+    结果如下：
+    ```
+    --
+    67377-epoch 2487| loss: 0.02752 | test_accuracy: 0.9676  |  9:47:54s
+    67378:Successfully saved model at output/best_model
+    67379-/opt/conda/envs/python35-paddle120-env/lib/python3.7/site-packages/paddle/nn/layer/norm.py:641: UserWarning: When training, we now always track global mean and variance.
+    --
+    67648-epoch 2497| loss: 0.02835 | test_accuracy: 0.96773 |  9:50:16s
+    67649:Successfully saved model at output/best_model
+    67650-/opt/conda/envs/python35-paddle120-env/lib/python3.7/site-packages/paddle/nn/layer/norm.py:641: UserWarning: When training, we now always track global mean and variance.
+    --
+    74372-epoch 2746| loss: 0.02596 | test_accuracy: 0.96777 |  10:48:43s
+    74373:Successfully saved model at output/best_model
+    74374-/opt/conda/envs/python35-paddle120-env/lib/python3.7/site-packages/paddle/nn/layer/norm.py:641: UserWarning: When training, we now always track global mean and variance.
+    ```
+    可以从日志中看到 最优模型是在第2746个epoch保存的，当时的loss是0.02596，精度是96.777%
+
+    保存最优的模型代码在paddle_tabnet/callbacks.py文件的133行。
+
+    ```
+    def on_epoch_end(self, epoch, logs=None):
+    acc = logs['test_accuracy']
+    if acc > self.best_acc:
+        self.best_weights = copy.deepcopy(self.trainer.network.state_dict())
+        self.best_acc = acc
+        self.trainer.save_model('output/best_model')
+    ```
+   
 
 # 5.测试
 
