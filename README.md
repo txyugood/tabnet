@@ -50,7 +50,7 @@ pip install wget
 4. 训练命令：
     ```
     cd tabnet
-    nohup python train.py > tabnet.log &
+    nohup python -u train.py > tabnet.log &
     ```
     这样程序会后台运行。
     通过以下代码，可以随时查看log。
